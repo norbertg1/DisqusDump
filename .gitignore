@@ -1,0 +1,8 @@
+#dirs
+saved/
+
+#config files
+config.py
+
+#
+*.pyc
