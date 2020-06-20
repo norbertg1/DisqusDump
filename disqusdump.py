@@ -10,11 +10,12 @@ top_replies_nr = 100
 disqus = DisqusAPI(config.secret_key, config.public_key)
 listPosts_results=[]
 
-user = ""
+user = config.user
 username="username:" + user
 
 
 f = open(user, "w")
+f_stat = open(user+"stats", "w")
 
 class CountLikesDislikes:
     def __init__ (self):
@@ -46,6 +47,7 @@ class CountLikesDislikes:
     def write_to_file(self, f):
         s = "\n\n\n Most likes:\n"
         for x in range (0, most_likes):
+            time.sleep(1)
             while True:
                 try:
                     thread = disqus(method='GET', endpoint="threads/details", thread=self.likes[x].get("thread"))
@@ -56,6 +58,7 @@ class CountLikesDislikes:
             s += "\n-----------------------------------\n"
         s += " \n\n Most dislikes:\n"
         for x in range (0, most_likes):
+            time.sleep(1)
             while True:
                 try:
                     thread = disqus(method='GET', endpoint="threads/details", thread=self.dislikes[x].get("thread"))
@@ -183,7 +186,7 @@ def except_handler(error):
         print error
         print(datetime.now())
         print "error, entering sleep"
-        time.sleep(1)
+        time.sleep(120)
 
 #Ha alul kikommentezem a thread sort akkor lehivasonként 100 üzenetet tudok elmenteni. Ha nincs kikommentezve a plussz infók üzenetenként egy két lehivasba kerülnek
 thread = 0
@@ -200,7 +203,8 @@ while True:
             if (len(listPosts) == limit_nr) or listPosts.cursor["hasNext"] == "False" or i>5:
                 break
             else:
-                print ("listPosts length shorter thank exected:", len(listPosts))
+                print ("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
+                f_stat.write("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
                 i=i+1
         listPosts_results.append(len(listPosts))
         if end.check_end(listPosts.cursor["next"]):
@@ -222,7 +226,7 @@ while True:
                 replies.update((post.get("author")["name"]))
             s += "\n-----------------------------------\n"
             f.write(s)
-        time.sleep(0.1)
+        time.sleep(1)
         print listPosts.cursor["next"]
         print listPosts[0].get("createdAt")
         print len(listPosts)
@@ -236,9 +240,15 @@ replies.write_to_file(f)
 likesdislikes.write_to_file(f)
 time_occurrences.write_to_file(f)
 Avarage.write_to_file(f)
+replies.write_to_file(f_stat)
+likesdislikes.write_to_file(f_stat)
+time_occurrences.write_to_file(f_stat)
+Avarage.write_to_file(f_stat)
 f.write(str(listPosts_results))
 f.close()
+f_stat.close()
 time.sleep(1)
 while(1):
+    print(datetime.now())
     print "end of program... sleeping"
     time.sleep(3600)
