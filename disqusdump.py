@@ -186,7 +186,7 @@ def except_handler(error):
         print error
         print(datetime.now())
         print "error, entering sleep"
-        time.sleep(120)
+        time.sleep(1)
 
 #Ha alul kikommentezem a thread sort akkor lehivasonként 100 üzenetet tudok elmenteni. Ha nincs kikommentezve a plussz infók üzenetenként egy két lehivasba kerülnek
 thread = 0
@@ -198,13 +198,13 @@ Avarage=AverageChars()
 while True:
     try:
         i=0
-        while True:
+        while True: #Ez azért van, hogy ha kevesebb választ kapok mint 100, akkor lekérdezem mégegyszer a posztokat
             listPosts = disqus(method='GET', endpoint="users/listPosts", user=username, limit = limit_nr, cursor = end.cursor)
             if (len(listPosts) == limit_nr) or listPosts.cursor["hasNext"] == "False" or i>5:
                 break
             else:
                 print ("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
-                f_stat.write("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
+                f_stat.write("listPosts length shorter thank exected:" + str(len(listPosts)) + "i:" + str(i) + "cursor:" + str(listPosts.cursor["next"]) + "createdAt:" + str(listPosts[0].get("createdAt")))
                 i=i+1
         listPosts_results.append(len(listPosts))
         if end.check_end(listPosts.cursor["next"]):
