@@ -1,6 +1,7 @@
-﻿from disqusapi import DisqusAPI
+from disqusapi import DisqusAPI
 import time
 import sys
+import linecache
 from datetime import datetime
 import config
 
@@ -27,24 +28,25 @@ class CountLikesDislikes:
                 post=disqus(method='GET', endpoint="users/listPosts", user=username, limit = 1, cursor="")[0]
                 break
             except:
-                except_handler(sys.exc_info()[0])
+                except_handler(sys.exc_info()[0],120)
         for x in range (0, most_likes):
             self.likes[x] = post
             self.dislikes[x] = post
 
     def update(self, key):
-        #↓↓↓↓↓ update likes ↓↓↓↓↓
+        #↓↓↓↓↓↓↓ update likes ↓↓↓↓↓↓↓
         for x in range (0, most_likes):
             if key.get("likes") > self.likes[x].get("likes"):
                 self.likes[x] = key
                 break
-        #↓↓↓↓↓ update dislikes ↓↓↓↓↓
+        #↓↓↓↓↓↓↓ update dislikes ↓↓↓↓↓↓↓
         for x in range (0, most_likes):    
             if key.get("dislikes") > self.dislikes[x].get("likes"):
                 self.dislikes[x] = key
                 break
 
     def write_to_file(self, f):
+	print("Likes and dislikes saving")
         s = "\n\n\n Most likes:\n"
         for x in range (0, most_likes):
             time.sleep(1)
@@ -53,7 +55,7 @@ class CountLikesDislikes:
                     thread = disqus(method='GET', endpoint="threads/details", thread=self.likes[x].get("thread"))
                     break
                 except:
-                    except_handler(sys.exc_info()[0])
+                    except_handler(sys.exc_info()[0],120)
             s += (self.likes[x].get("createdAt")).encode('utf-8') + " likes: " + str(self.likes[x].get("likes")) + " dislikes: " + str(self.likes[x].get(" dislikes ")) + "\n" + (self.likes[x].get("raw_message")).encode('utf-8') + "\nThread: " +str(self.likes[x].get("thread"))+"\n" + (thread.get("clean_title")).encode('utf-8') + thread.get("link").encode('utf-8') + "\n"
             s += "\n-----------------------------------\n"
         s += " \n\n Most dislikes:\n"
@@ -64,7 +66,7 @@ class CountLikesDislikes:
                     thread = disqus(method='GET', endpoint="threads/details", thread=self.dislikes[x].get("thread"))
                     break
                 except:
-                    except_handler(sys.exc_info()[0])            
+                    except_handler(sys.exc_info()[0],120)            
             s += (self.dislikes[x].get("createdAt")).encode('utf-8') + " likes: " + str(self.dislikes[x].get("likes")) + " dislikes: " + str(self.dislikes[x].get(" dislikes ")) + "\n" + (self.dislikes[x].get("raw_message")).encode('utf-8') + "\nThread: " +str(self.dislikes[x].get("thread")) +"\n" + (thread.get("clean_title")).encode('utf-8') + thread.get("link").encode('utf-8') + "\n"
             s += "\n-----------------------------------\n"
         f.write(s)
@@ -92,6 +94,7 @@ class CountReplies:
             self.users[user]=1
 
     def write_to_file(self, f):
+	print("Replies saving...")
         a=sorted(self.users.items(), key=lambda x: x[1], reverse=True)
         s = "\n\nMost replies:\n"
         lenght=top_replies_nr
@@ -122,7 +125,7 @@ class CountDateTime:
                 t = disqus(method='GET', endpoint="users/listPosts", user=username, limit = 1, cursor="")[0].get("createdAt")
                 break
             except:
-                except_handler(sys.exc_info()[0])
+                except_handler(sys.exc_info()[0],120)
         t = datetime.strptime(t, '%Y-%m-%dT%H:%M:%S')
         t = utc2local(t)
         t = datetime.strptime(str(t.year) + str(t.month), '%Y%m')
@@ -141,6 +144,7 @@ class CountDateTime:
             self.count_months[datetime.strptime(str(t.year) + str(t.month), '%Y%m')]=1
 
     def write_to_file(self, f):
+	print("Time occurencies saving...")
         s = "\n\nHour_occurance:\n"
         for item in self.count_hours:
             s += str(item) + "," + str(self.count_hours[item]) + "\n"
@@ -168,13 +172,14 @@ class AverageChars:
         self.total_chars = self.total_chars + len(message)
 
     def write_to_file(self, f):
+	print("Avarage saving...")
         avarage = self.total_chars/self.messages_num 
         s = "\n\n\n Total characters:\n"
         s += str(self.total_chars)
         s += "\nMessages number:\n"
         s += str(self.messages_num)
-        s += "\nAvarage characters:\n"
-        s += str(avarage)
+	s += "\nAvarage characters:\n"
+	s += str(avarage)
         f.write(s)
 
 def utc2local (utc):
@@ -182,13 +187,22 @@ def utc2local (utc):
     offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
     return utc + offset
 
-def except_handler(error):
-        print error
+def except_handler(error, s):
+	PrintException()
         print(datetime.now())
-        print "error, entering sleep"
-        time.sleep(1)
+        print "error, entering sleep: ", s
+        time.sleep(s)
 
-#Ha alul kikommentezem a thread sort akkor lehivasonként 100 üzenetet tudok elmenteni. Ha nincs kikommentezve a plussz infók üzenetenként egy két lehivasba kerülnek
+def PrintException():
+    exc_type, exc_obj, tb = sys.exc_info()
+    f = tb.tb_frame
+    lineno = tb.tb_lineno
+    filename = f.f_code.co_filename
+    linecache.checkcache(filename)
+    line = linecache.getline(filename, lineno, f.f_globals)
+    print 'EXCEPTION IN ({}, LINE {} "{}"): {}'.format(filename, lineno, line.strip(), exc_obj)
+
+#Ha alul kikommentezem a thread sort akkor lehivasonkent 100 uzenetet tudok elmenteni. Ha nincs kikommentezve a plussz infok uzenetenkent egy ket lehivasba kerulnek
 thread = 0
 time_occurrences=CountDateTime()
 likesdislikes=CountLikesDislikes()
@@ -198,14 +212,18 @@ Avarage=AverageChars()
 while True:
     try:
         i=0
-        while True: #Ez azért van, hogy ha kevesebb választ kapok mint 100, akkor lekérdezem mégegyszer a posztokat
-            listPosts = disqus(method='GET', endpoint="users/listPosts", user=username, limit = limit_nr, cursor = end.cursor)
-            if (len(listPosts) == limit_nr) or listPosts.cursor["hasNext"] == "False" or i>5:
-                break
-            else:
-                print ("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
-                f_stat.write("listPosts length shorter thank exected:" + str(len(listPosts)) + "i:" + str(i) + "cursor:" + str(listPosts.cursor["next"]) + "createdAt:" + str(listPosts[0].get("createdAt")))
-                i=i+1
+        while True: #Ez azert van, hogy ha kevesebb valaszt kapok mint 100, akkor lekerdezem megegyszer a posztokat
+        	listPosts = disqus(method='GET', endpoint="users/listPosts", user=username, limit = limit_nr, cursor = end.cursor)
+        	if (len(listPosts) == limit_nr) or listPosts.cursor["hasNext"] == "False" or i>5:
+                	break
+            	else:
+                	#print ("listPosts length shorter thank exected:", len(listPosts), "i:", str(i), "cursor:", listPosts.cursor["next"], "createdAt:", listPosts[0].get("createdAt"))
+                	s=("listPosts length shorter thank exected:" + str(len(listPosts)) + "i:" + str(i) + "cursor:" + str(listPosts.cursor["next"]))
+			if 0 in listPosts:
+				s += ("createdAt:" + str(listPosts[0].get("createdAt")))
+                	print (s)
+			f_stat.write(s)
+			i=i+1
         listPosts_results.append(len(listPosts))
         if end.check_end(listPosts.cursor["next"]):
             break
@@ -233,9 +251,12 @@ while True:
     except KeyboardInterrupt:
         time.sleep(1)
         break
+    except IndexError:
+        except_handler(sys.exc_info()[0],3600)
     except:
-        except_handler(sys.exc_info()[0])
+        except_handler(sys.exc_info()[0],120)
 
+print("statistics")
 replies.write_to_file(f)
 likesdislikes.write_to_file(f)
 time_occurrences.write_to_file(f)
@@ -250,5 +271,5 @@ f_stat.close()
 time.sleep(1)
 while(1):
     print(datetime.now())
-    print "end of program... sleeping"
+    print "end of program... sleeping: 3600s"
     time.sleep(3600)
