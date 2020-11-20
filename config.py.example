@@ -1,2 +1,7 @@
-public_key = "YOUR_KEY"
-secret_key = "YOUR_SECRET"
+public_key = "YOUR_KEY"                                                             #key to access to disqus API
+secret_key = "YOUR_SECRET"                                                          #key to access to disqus API
+user = "username"                                                                   #username for save
+most_likes = 100                                                                    #number of top liked comments for saving separately
+most_popular_partners = 100                                                         #number of partners for who ther user replies most
+limit_query = 100                                                                   #number of one query
+extended_stat = 1                                                                   #some other info (Link to thread, Thread Title) per message it cost + querry / message.

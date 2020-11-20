@@ -1,5 +1,6 @@
 #dirs
 saved/
+dump/
 
 #config files
 config.py

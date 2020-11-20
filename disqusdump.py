@@ -5,19 +5,24 @@ import sys
 import linecache
 from datetime import datetime
 import config
+import os
 
-most_likes = 100
-limit_nr = 100 #lekerdezett posztok száma
-top_replies_nr = 100
+
+most_likes = config.most_likes
+limit_nr = config.limit_query #lekerdezett posztok száma
+top_replies_nr = config.most_popular_partners
 disqus = DisqusAPI(config.secret_key, config.public_key)
 listPosts_results=[]
 
 user = config.user
 username="username:" + user
 
+if not os.path.exists('dump'):
+    os.makedirs('dump')
 
-f = open(user, "w")
-f_stat = open(user+"stats", "w")
+path = "dump/" + user
+f = open(path, "w")
+f_stat = open(path+"stats", "w")
 
 class CountLikesDislikes:
     def __init__ (self):
@@ -47,7 +52,7 @@ class CountLikesDislikes:
                 break
 
     def write_to_file(self, f):
-	print("Likes and dislikes saving")
+        print("Likes and dislikes saving")
         s = "\n\n\n Most likes:\n"
         for x in range (0, most_likes):
             time.sleep(1)
@@ -232,11 +237,13 @@ while True:
             likesdislikes.update(key)
             time_occurrences.update(key.get("createdAt"))
             Avarage.update(key.get("raw_message"))
-            #↓↓↓↓↓ egyutt kommentelni ↓↓↓↓↓
-            thread = disqus(method='GET', endpoint="threads/details", thread=key.get("thread"))    #Ha ez nincs kikommentevel akkor plussz infók mentődnek el de két lehívásba kerül üzenetenként
-            s = (key.get("createdAt")).encode('utf-8') + " likes: " + str(key.get("likes")) + " dislikes: " + str(key.get(" dislikes ")) + "\n" + (key.get("raw_message")).encode('utf-8') + "\nThread: " +str(key.get("thread")) +"\n" + (thread.get("clean_title")).encode('utf-8') + thread.get("link").encode('utf-8') + "\n"
-            #↑↑↑↑↑ egyutt kommentelni ↑↑↑↑↑
-            #s = (key.get("createdAt")).encode('utf-8') + " likes: " + str(key.get("likes")) + " dislikes: " + str(key.get(" dislikes ")) + "\n" + (key.get("raw_message")).encode('utf-8') + "\nThread: " +str(key.get("thread"))
+            #↓↓↓↓↓ EXTENDED STAT ↓↓↓↓↓
+            if config.extended_stat:
+                thread = disqus(method='GET', endpoint="threads/details", thread=key.get("thread"))    #Ha ez nincs kikommentevel akkor plussz infók mentődnek el de két lehívásba kerül üzenetenként
+                s = (key.get("createdAt")).encode('utf-8') + " likes: " + str(key.get("likes")) + " dislikes: " + str(key.get(" dislikes ")) + "\n" + (key.get("raw_message")).encode('utf-8') + "\nThread: " +str(key.get("thread")) +"\n" + (thread.get("clean_title")).encode('utf-8') + thread.get("link").encode('utf-8') + "\n"
+            #↑↑↑↑↑ EXTENDED STAT ↑↑↑↑↑
+            else:
+                s = (key.get("createdAt")).encode('utf-8') + " likes: " + str(key.get("likes")) + " dislikes: " + str(key.get(" dislikes ")) + "\n" + (key.get("raw_message")).encode('utf-8') + "\nThread: " +str(key.get("thread"))
             if(key.get("parent") and thread):   #ez csak akkor futattódik le ha a thread sor kettővel fejebb nincs kikommentelve és valasz postról van szó
                 post = disqus(method='GET', endpoint="posts/details", post=key.get("parent"))
                 if post.get("author").has_key("username"):
