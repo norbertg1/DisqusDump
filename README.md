@@ -5,17 +5,16 @@ This little Python code saves Disqus user comments with some statistics.
 ## Usage
 
 Run in terminal:
-<code>python2 disqusdump.py</code>
+<pre><code>python2 disqusdump.py</code></pre>
 
-You need to provide your API public and secret keys in config.py file:\
-<code>public_key = "YOUR_KEY"</p>
+You need to provide your API public and secret keys in config.py file:
+<pre><code>public_key = "YOUR_KEY"
 secret_key = "YOUR_SECRET"
-</code>
+</code></pre>
 
-The username who is targeted by the dump:\
-<code>
-user = "username"
-</code>
+The username who is targeted by the dump:
+<pre><code>user = "username"
+</code></pre>
 
 Change some config values or leave default.
 
